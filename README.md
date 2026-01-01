@@ -1,5 +1,5 @@
 # NOTICE
-This mod is not maintained by its original author. Report any issues to `pseudopulse` in the Risk of Rain 2 modding discord.
+This mod is not currently maintained by its original author. Report any issues to `pseudopulse` in the Risk of Rain 2 modding discord.
 
 # More Shrines
 
@@ -38,7 +38,7 @@ My discord tag is **Evaisa#0001**
   
 ![Shine of Imps](https://media.giphy.com/media/S8x8nRoQaL761cAwKt/giphy.gif)
   
-**Shrine of the Fallen**
+**Shrine of the Fallen** (disabled by default due to SOTS' Shrine of Shaping)
 
 ![Shrine of the Fallen](https://media.giphy.com/media/Xs0L2YFFcvAFJuk61x/giphy.gif)
   
