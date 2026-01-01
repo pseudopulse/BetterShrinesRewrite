@@ -5,7 +5,6 @@ using UnityEngine.Networking;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
-using BetterAPI;
 
 namespace Evaisa.MoreShrines
 {
@@ -42,7 +41,7 @@ namespace Evaisa.MoreShrines
         {
 			purchaseInteraction = GetComponent<PurchaseInteraction>();
 
-			purchaseInteraction.costType = (CostTypeIndex)CostTypes.getCostTypeIndex(MoreShrines.costTypeDefShrineFallen);
+			purchaseInteraction.costType = (CostTypeIndex)Array.IndexOf(CostTypeCatalog.costTypeDefs, MoreShrines.costTypeDefShrineFallen);
 
 			purchaseInteraction.onPurchase.AddListener((interactor) =>
 			{

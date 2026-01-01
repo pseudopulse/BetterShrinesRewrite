@@ -1,16 +1,15 @@
-﻿using Mono.Cecil.Cil;
+﻿global using R2API;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using BetterAPI;
 using UnityEngine;
 using RoR2.UI;
 
 namespace Evaisa.MoreShrines
 {
-   
     internal class InitBuffs
     {
         public static BuffDef maxHPDown;
@@ -28,7 +27,7 @@ namespace Evaisa.MoreShrines
 
             maxHPDown.buffColor = Color.red;
 
-            BetterAPI.Buffs.Add(maxHPDown);
+            ContentAddition.AddBuffDef(maxHPDown);
 
             maxHPDownStage = ScriptableObject.CreateInstance<BuffDef>();
 
@@ -39,24 +38,22 @@ namespace Evaisa.MoreShrines
 
             maxHPDownStage.buffColor = Color.red;
 
-            BetterAPI.Buffs.Add(maxHPDownStage);
+            ContentAddition.AddBuffDef(maxHPDownStage);
 
-            Stats.Health.collectMultipliers += Health_collectMultipliers;
-            On.RoR2.Stage.BeginAdvanceStage +=Stage_BeginAdvanceStage;
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateHP;
+            On.RoR2.Stage.BeginAdvanceStage += Stage_BeginAdvanceStage;
 
             On.RoR2.UI.BuffIcon.UpdateIcon += BuffIcon_UpdateIcon;
         }
 
-        private static void Health_collectMultipliers(CharacterBody sender, Stats.Stat.StatMultiplierArgs e)
+        private static void RecalculateHP(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
         {
+            if (sender) {
+                int count = sender.GetBuffCount(maxHPDownStage);
+                int count2 = sender.GetBuffCount(maxHPDown);
 
-            if (sender != null)
-            {
-                if (sender is CharacterBody characterBody)
-                {
-                    e.multiplicativeMultipliers.Add(1f - characterBody.GetBuffCount(maxHPDownStage) / 100f);
-                    e.multiplicativeMultipliers.Add(1f - characterBody.GetBuffCount(maxHPDown) / 100f);
-                }
+                args.healthTotalMult *= 1f - (count / 100f);
+                args.healthTotalMult *= 1f - (count2 / 100f);
             }
         }
 

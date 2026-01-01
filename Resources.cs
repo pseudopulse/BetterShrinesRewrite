@@ -19,9 +19,9 @@ namespace Evaisa.MoreShrines
 
             Loaded = true;
 
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Evaisa.MoreShrines.bettershrines"))
+            using (null)
             {
-                var bundle = AssetBundle.LoadFromStream(stream);
+                var bundle = AssetBundle.LoadFromFile(Assembly.GetExecutingAssembly().Location.Replace("BetterShrines.dll", "bettershrines"));
                 bundle.LoadAllAssets();
 
 

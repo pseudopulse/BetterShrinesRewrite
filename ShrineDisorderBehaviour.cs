@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
-using BetterAPI;
+using Newtonsoft.Json.Utilities;
 
 namespace Evaisa.MoreShrines
 {
@@ -29,7 +29,7 @@ namespace Evaisa.MoreShrines
         public void Awake()
         {
 			purchaseInteraction = GetComponent<PurchaseInteraction>();
-            purchaseInteraction.costType = CostTypes.getCostTypeIndex(MoreShrines.costTypeDefShrineDisorder);
+            purchaseInteraction.costType = (CostTypeIndex)Array.IndexOf(CostTypeCatalog.costTypeDefs, MoreShrines.costTypeDefShrineDisorder);
             purchaseInteraction.cost = 1;
             purchaseInteraction.Networkcost = 1;
 			purchaseInteraction.onPurchase.AddListener((interactor) =>
@@ -85,7 +85,7 @@ namespace Evaisa.MoreShrines
 
         public void FlattenInventory(Inventory inventory, ItemTier itemTier)
         {
-            var itemDefs = Utils.ItemDefsFromTier(itemTier, true);
+            var itemDefs = ItemCatalog.allItemDefs.Where(x => x.tier == itemTier && Run.instance.IsItemAvailable(x.itemIndex)).ToArray();
             int[] itemCounts = new int[itemDefs.Length];
             int lowestCount = int.MaxValue;
             foreach (var itemDef in itemDefs)
@@ -118,7 +118,7 @@ namespace Evaisa.MoreShrines
                 if (itemChoices.Count > 0)
                 {
                     itemBudget--;
-                    var randomIndex = itemChoices.EvaluteToChoiceIndex(UnityEngine.Random.value);
+                    var randomIndex = itemChoices.EvaluateToChoiceIndex(UnityEngine.Random.value);
 
                     itemCounts[Array.IndexOf(itemDefs, itemChoices.GetChoice(randomIndex).value)]++;
                     itemChoices.RemoveChoice(randomIndex);

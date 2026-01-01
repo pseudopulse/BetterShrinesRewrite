@@ -5,7 +5,6 @@ using UnityEngine.Networking;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
-using BetterAPI;
 
 namespace Evaisa.MoreShrines
 {
@@ -27,7 +26,7 @@ namespace Evaisa.MoreShrines
             {
                 AddShrineStack(interactor);
             });
-            purchaseInteraction.costType = CostTypes.getCostTypeIndex(MoreShrines.costTypeDefShrineHeresy);
+            purchaseInteraction.costType = (CostTypeIndex)Array.IndexOf(CostTypeCatalog.costTypeDefs, MoreShrines.costTypeDefShrineHeresy);
 
             possiblePicks.Add(RoR2Content.Items.LunarPrimaryReplacement);
             possiblePicks.Add(RoR2Content.Items.LunarSecondaryReplacement);

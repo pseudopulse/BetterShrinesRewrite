@@ -6,7 +6,6 @@ using RoR2;
 using System.Collections.Generic;
 using System.Linq;
 using RoR2.UI;
-using BetterAPI;
 using RoR2.CharacterAI;
 
 namespace Evaisa.MoreShrines
@@ -63,17 +62,17 @@ namespace Evaisa.MoreShrines
 
 				var rand = UnityEngine.Random.Range(1, 100);
 
-				purchaseInteraction.costType = CostTypes.getCostTypeIndex(MoreShrines.costTypeDefWispWhite);
+				purchaseInteraction.costType = (CostTypeIndex)Array.IndexOf(CostTypeCatalog.costTypeDefs, MoreShrines.costTypeDefWispWhite);
 
 				if (rand <= 40)
 				{
-					purchaseInteraction.costType = CostTypes.getCostTypeIndex(MoreShrines.costTypeDefWispGreen);
+					purchaseInteraction.costType = (CostTypeIndex)Array.IndexOf(CostTypeCatalog.costTypeDefs, MoreShrines.costTypeDefWispGreen);
 					tier = 2;
 				}
 
 				if (rand <= 5)
 				{
-					purchaseInteraction.costType = CostTypes.getCostTypeIndex(MoreShrines.costTypeDefWispRed);
+					purchaseInteraction.costType = (CostTypeIndex)Array.IndexOf(CostTypeCatalog.costTypeDefs, MoreShrines.costTypeDefWispRed);
 					tier = 3;
 					var particleSystem = symbolTransform.GetComponent<ParticleSystem>();
 					//particleSystem.colorOverLifetime.color.colorMin.r = 1.0f;

@@ -17,7 +17,6 @@ using System.Security.Permissions;
 using RoR2.CharacterAI;
 using RoR2.UI;
 using RoR2.Navigation;
-using BetterAPI;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
@@ -27,11 +26,10 @@ using Random = UnityEngine.Random;
 namespace Evaisa.MoreShrines
 {
 	//[BepInDependency(MiniRpcPlugin.Dependency)]
-	[BepInDependency("com.xoxfaby.BetterAPI")]
 	[BepInPlugin(ModGuid, ModName, ModVer)]
 	public class MoreShrines : BaseUnityPlugin
     {
-		private const string ModVer = "1.1.7.1";
+		private const string ModVer = "1.1.8";
 		private const string ModName = "More Shrines";
 		private const string ModGuid = "com.evaisa.moreshrines";
 
@@ -40,14 +38,6 @@ namespace Evaisa.MoreShrines
 		public static Xoroshiro128Plus EvaRng;
 
 		public static CharacterSpawnCard impSpawnCard;
-
-		public static Interactables.InteractableInfo impShrineInteractableInfo;
-		public static Interactables.InteractableInfo fallenShrineInteractableInfo;
-		public static Interactables.InteractableInfo disorderShrineInteractableInfo;
-		public static Interactables.InteractableInfo heresyShrineInteractableInfo;
-		public static Interactables.InteractableInfo wispShrineInteractableInfo;
-		public static Interactables.InteractableInfo shieldShrineInteractableInfo;
-
 
 		public static ConfigEntry<bool> impShrineEnabled;
 		public static ConfigEntry<int> impShrineWeight;
@@ -89,8 +79,6 @@ namespace Evaisa.MoreShrines
 		public static GameObject debugPrefab;
 
 		public static bool debugMode = false;
-
-		public static List<Objectives.ObjectiveInfo> objectives = new List<Objectives.ObjectiveInfo>();
 
 		public MoreShrines ()
         {
@@ -158,7 +146,38 @@ namespace Evaisa.MoreShrines
 			//setupHealthBar();
 			//On.RoR2.UI.HealthBar.UpdateBarInfos += HealthBar_UpdateBarInfos;
 			//IL.RoR2.UI.HealthBar.UpdateBarInfos += HealthBar_UpdateBarInfos;
+
+			CostTypeCatalog.modHelper.getAdditionalEntries += (List<CostTypeDef> list) => {
+				if (costTypeDefShrineDisorder != null) list.Add(costTypeDefShrineDisorder);
+				if (costTypeDefShrineFallen != null) list.Add(costTypeDefShrineFallen);
+				if (costTypeDefShrineHeresy != null) list.Add(costTypeDefShrineHeresy);
+				if (costTypeDefWispGreen != null) list.Add(costTypeDefWispGreen);
+				if (costTypeDefWispRed != null) list.Add(costTypeDefWispRed);
+				if (costTypeDefWispWhite != null) list.Add(costTypeDefWispWhite);
+			};
+
+			IL.RoR2.CostTypeCatalog.Init += (il) =>
+            {
+                ILCursor c = new(il);
+                bool found = c.TryGotoNext(MoveType.Before,
+                    x => x.MatchLdcI4(out _)
+                );
+
+                if (found)
+                {
+                    c.Index++;
+                    c.EmitDelegate<Func<int, int>>((c) =>
+                    {
+                        return c + 10;
+                    });
+                }
+                else
+                {
+                    Logger.LogError("Failed to apply CostTypeCatalog IL hook");
+                }
+            };
 		}
+		
 
 		/*
 		public static HealthBar.BarInfo customShieldBarInfo;
@@ -181,6 +200,7 @@ namespace Evaisa.MoreShrines
 			};
 		}
 		*/
+		
 		/*
 		private void HealthBar_UpdateBarInfos(ILContext il)
 		{
@@ -225,16 +245,6 @@ namespace Evaisa.MoreShrines
 			}
 		}*/
 
-		private void Stage_Start(On.RoR2.Stage.orig_Start orig, Stage self)
-        {
-			orig(self);
-			foreach(var objective in objectives)
-            {
-				Objectives.RemoveObjective(objective);
-            }
-			objectives.Clear();
-		}
-
         void Update()
         {
 			//HealthBarAPI.Update();
@@ -259,7 +269,7 @@ namespace Evaisa.MoreShrines
 				}
 				return false;
 			};
-			costTypeDefWispWhite.payCost = delegate (CostTypeDef costTypeDef, CostTypeDef.PayCostContext context)
+			costTypeDefWispWhite.payCost = delegate (CostTypeDef.PayCostContext context, CostTypeDef.PayCostResults results)
 			{
 				CharacterBody characterBody = context.activator.GetComponent<CharacterBody>();
 				if (characterBody)
@@ -286,7 +296,6 @@ namespace Evaisa.MoreShrines
 				}
 			};
 			costTypeDefWispWhite.colorIndex = ColorCatalog.ColorIndex.Tier1Item;
-			CostTypes.Add(costTypeDefWispWhite);
 		}
 
 		public void CreateCostDefWispGreen()
@@ -308,7 +317,7 @@ namespace Evaisa.MoreShrines
 				}
 				return false;
 			};
-			costTypeDefWispGreen.payCost = delegate (CostTypeDef costTypeDef, CostTypeDef.PayCostContext context)
+			costTypeDefWispGreen.payCost = delegate (CostTypeDef.PayCostContext context, CostTypeDef.PayCostResults results)
 			{
 				CharacterBody characterBody = context.activator.GetComponent<CharacterBody>();
 				if (characterBody)
@@ -335,7 +344,6 @@ namespace Evaisa.MoreShrines
 				}
 			};
 			costTypeDefWispGreen.colorIndex = ColorCatalog.ColorIndex.Tier2Item;
-			CostTypes.Add(costTypeDefWispGreen);
 		}
 
 		public void CreateCostDefWispRed()
@@ -358,7 +366,7 @@ namespace Evaisa.MoreShrines
 				}
 				return false;
 			};
-			costTypeDefWispRed.payCost = delegate (CostTypeDef costTypeDef, CostTypeDef.PayCostContext context)
+			costTypeDefWispRed.payCost = delegate (CostTypeDef.PayCostContext context, CostTypeDef.PayCostResults results)
 			{
 				CharacterBody characterBody = context.activator.GetComponent<CharacterBody>();
 				if (characterBody)
@@ -385,7 +393,6 @@ namespace Evaisa.MoreShrines
 				}
 			};
 			costTypeDefWispRed.colorIndex = ColorCatalog.ColorIndex.Tier3Item;
-			CostTypes.Add(costTypeDefWispRed);
 		}
 
 		public void CreateCostDefShrineFallen()
@@ -406,7 +413,7 @@ namespace Evaisa.MoreShrines
 				}
 				return false;
 			};
-			costTypeDefShrineFallen.payCost = delegate (CostTypeDef costTypeDef, CostTypeDef.PayCostContext context)
+			costTypeDefShrineFallen.payCost = delegate (CostTypeDef.PayCostContext context, CostTypeDef.PayCostResults results)
 			{
 				CharacterBody component = context.activator.GetComponent<CharacterBody>();
 				if (component)
@@ -423,7 +430,6 @@ namespace Evaisa.MoreShrines
 				}
 			};
 			costTypeDefShrineFallen.colorIndex = ColorCatalog.ColorIndex.Blood;
-			CostTypes.Add(costTypeDefShrineFallen);
 		}
 
 
@@ -446,7 +452,7 @@ namespace Evaisa.MoreShrines
 				}
 				return false;
 			};
-			costTypeDefShrineFallen.payCost = delegate (CostTypeDef costTypeDef, CostTypeDef.PayCostContext context)
+			costTypeDefShrineFallen.payCost = delegate (CostTypeDef.PayCostContext context, CostTypeDef.PayCostResults results)
 			{
 
 				if (context.activatorMaster)
@@ -456,7 +462,6 @@ namespace Evaisa.MoreShrines
 
 			};
 			costTypeDefShrineFallen.colorIndex = ColorCatalog.ColorIndex.Money;
-			CostTypes.Add(costTypeDefShrineFallen);
 		}
 
 		public void CreateCostDefShrineDisorder()
@@ -478,7 +483,7 @@ namespace Evaisa.MoreShrines
 					foreach (ItemTier tier in Enum.GetValues(typeof(ItemTier)))
 					{
 						var minStack = int.MaxValue;
-						var itemDefs = Utils.ItemDefsFromTier(tier);
+						var itemDefs = ItemCatalog.allItemDefs.Where(x => x.tier == tier);
 						foreach (var itemDef in itemDefs)
 						{
 							var count = inventory.GetItemCount(itemDef);
@@ -496,7 +501,7 @@ namespace Evaisa.MoreShrines
 				}
 				return false;
 			};
-			costTypeDefShrineDisorder.payCost = delegate (CostTypeDef costTypeDef, CostTypeDef.PayCostContext context)
+			costTypeDefShrineDisorder.payCost = delegate (CostTypeDef.PayCostContext context, CostTypeDef.PayCostResults results)
 			{
 				NetworkUser networkUser = Util.LookUpBodyNetworkUser(context.activator.gameObject);
 				if (networkUser)
@@ -505,7 +510,6 @@ namespace Evaisa.MoreShrines
 				}
 			};
 			costTypeDefShrineDisorder.colorIndex = ColorCatalog.ColorIndex.LunarCoin;
-			CostTypes.Add(costTypeDefShrineDisorder);
 		}
 
 		public void CreateCostDefShrineHeresy()
@@ -533,7 +537,7 @@ namespace Evaisa.MoreShrines
 				}
 				return false;
 			};
-			costTypeDefShrineHeresy.payCost = delegate (CostTypeDef costTypeDef, CostTypeDef.PayCostContext context)
+			costTypeDefShrineHeresy.payCost = delegate (CostTypeDef.PayCostContext context, CostTypeDef.PayCostResults results)
 			{
 				NetworkUser networkUser = Util.LookUpBodyNetworkUser(context.activator.gameObject);
 				if (networkUser)
@@ -542,46 +546,45 @@ namespace Evaisa.MoreShrines
 				}
 			};
 			costTypeDefShrineHeresy.colorIndex = ColorCatalog.ColorIndex.LunarCoin;
-			CostTypes.Add(costTypeDefShrineHeresy);
 		}
 
 		public void RegisterLanguageTokens()
         {
-			//Languages.AddTokenString("SHRINE_CHANCE_PUNISHED_MESSAGE", "<style=cShrine>{0} offered to the shrine and was punished!</style>");
-			//Languages.AddTokenString("SHRINE_CHANCE_PUNISHED_MESSAGE_2P", "<style=cShrine>You offer to the shrine and are punished!</style>");
-			Languages.AddTokenString("SHRINE_IMP_USE_MESSAGE", "<style=cShrine>{0} inspected the vase and tiny imps appeared!</style>");
-			Languages.AddTokenString("SHRINE_IMP_USE_MESSAGE_2P", "<style=cShrine>You inspected the vase and tiny imps appeared!</style>");
-			Languages.AddTokenString("SHRINE_IMP_COMPLETED", "<style=cIsHealing>You killed all the imps and found some items!</style>");
-			Languages.AddTokenString("SHRINE_IMP_COMPLETED_2P", "<style=cIsHealing>{0} killed all the imps and found some items!</style>");
-			Languages.AddTokenString("SHRINE_IMP_FAILED", "<style=cIsHealth>You failed to kill all the imps in time!</style>");
-			Languages.AddTokenString("SHRINE_IMP_FAILED_2P", "<style=cIsHealth>{0} failed to kill all the imps in time!</style>");
-			Languages.AddTokenString("SHRINE_IMP_NAME", "Shrine of Imps");
-			Languages.AddTokenString("SHRINE_IMP_CONTEXT", "Inspect the vase.");
-			Languages.AddTokenString("SHRINE_FALLEN_NAME", "Shrine of the Fallen");
-			Languages.AddTokenString("SHRINE_FALLEN_CONTEXT", "Offer to Shrine of the Fallen");
-			Languages.AddTokenString("SHRINE_FALLEN_USED", "<style=cIsHealing>{0} offered to the Shrine of the Fallen and revived {1}!</style>");
-			Languages.AddTokenString("SHRINE_FALLEN_USED_2P", "<style=cIsHealing>You offer to the Shrine of the Fallen and revived {1}!</style>");
-			Languages.AddTokenString("OBJECTIVE_KILL_TINY_IMPS", "Kill the <color={0}>tiny imps</color> ({1}/{2}) in {3} seconds!");
-			Languages.AddTokenString("COST_PERCENTMAXHEALTH_FORMAT", "{0}% MAX HP");
-			Languages.AddTokenString("COST_PERCENTMAXHEALTH_ROUND_FORMAT", "{0}% STAGE MAX HP");
-			Languages.AddTokenString("SHRINE_DISORDER_NAME", "Shrine of Disorder");
-			Languages.AddTokenString("SHRINE_DISORDER_CONTEXT", "Offer to Shrine of Disorder");
-			Languages.AddTokenString("SHRINE_DISORDER_USE_MESSAGE_2P", "<style=cShrine>Your order has been disturbed.</style>");
-			Languages.AddTokenString("SHRINE_DISORDER_USE_MESSAGE", "<style=cShrine>{0}'s order has been disturbed.</style>");
-			Languages.AddTokenString("SHRINE_HERESY_NAME", "Shrine of Heresy");
-			Languages.AddTokenString("SHRINE_HERESY_CONTEXT", "Offer to Shrine of Heresy");
-			Languages.AddTokenString("SHRINE_HERESY_USE_MESSAGE_2P", "<style=cShrine>You have taken a step towards heresy.</style>");
-			Languages.AddTokenString("SHRINE_HERESY_USE_MESSAGE", "<style=cShrine>{0} has taken a step towards heresy.</style>");
-			Languages.AddTokenString("SHRINE_WISP_NAME", "Shrine of Wisps");
-			Languages.AddTokenString("SHRINE_WISP_CONTEXT", "Offer to the tree");
-			Languages.AddTokenString("SHRINE_WISP_ACCEPT_MESSAGE_2P", "<style=cShrine>The tree accepted your <color=#{1}>{2}</color> and ghostly Wisps appeared.</style>");
-			Languages.AddTokenString("SHRINE_WISP_ACCEPT_MESSAGE", "<style=cShrine>The tree accepted {0}'s <color=#{1}>{2}</color> and ghostly Wisps appeared.</style>");
-			Languages.AddTokenString("SHRINE_WISP_DENY_MESSAGE_2P", "<style=cIsDamage>The tree rejected your <color=#{1}>{2}</color> and angry Wisps appeared..</style>");
-			Languages.AddTokenString("SHRINE_WISP_DENY_MESSAGE", "<style=cIsDamage>The tree rejected {0}'s <color=#{1}>{2}</color> and angry Wisps appeared..</style>");
-			Languages.AddTokenString("SHRINE_SHIELDING_NAME", "Shrine of Hardening");
-			Languages.AddTokenString("SHRINE_SHIELDING_CONTEXT", "Touch the shield.");
-			Languages.AddTokenString("SHRINE_SHIELDING_USE_MESSAGE_2P", "<style=cShrine>You feel protected.</style>");
-			Languages.AddTokenString("SHRINE_SHIELDING_USE_MESSAGE", "<style=cShrine>{0} feels protected.</style>");
+			//LanguageAPI.Add("SHRINE_CHANCE_PUNISHED_MESSAGE", "<style=cShrine>{0} offered to the shrine and was punished!</style>");
+			//LanguageAPI.Add("SHRINE_CHANCE_PUNISHED_MESSAGE_2P", "<style=cShrine>You offer to the shrine and are punished!</style>");
+			LanguageAPI.Add("SHRINE_IMP_USE_MESSAGE", "<style=cShrine>{0} inspected the vase and tiny imps appeared!</style>");
+			LanguageAPI.Add("SHRINE_IMP_USE_MESSAGE_2P", "<style=cShrine>You inspected the vase and tiny imps appeared!</style>");
+			LanguageAPI.Add("SHRINE_IMP_COMPLETED", "<style=cIsHealing>You killed all the imps and found some items!</style>");
+			LanguageAPI.Add("SHRINE_IMP_COMPLETED_2P", "<style=cIsHealing>{0} killed all the imps and found some items!</style>");
+			LanguageAPI.Add("SHRINE_IMP_FAILED", "<style=cIsHealth>You failed to kill all the imps in time!</style>");
+			LanguageAPI.Add("SHRINE_IMP_FAILED_2P", "<style=cIsHealth>{0} failed to kill all the imps in time!</style>");
+			LanguageAPI.Add("SHRINE_IMP_NAME", "Shrine of Imps");
+			LanguageAPI.Add("SHRINE_IMP_CONTEXT", "Inspect the vase.");
+			LanguageAPI.Add("SHRINE_FALLEN_NAME", "Shrine of the Fallen");
+			LanguageAPI.Add("SHRINE_FALLEN_CONTEXT", "Offer to Shrine of the Fallen");
+			LanguageAPI.Add("SHRINE_FALLEN_USED", "<style=cIsHealing>{0} offered to the Shrine of the Fallen and revived {1}!</style>");
+			LanguageAPI.Add("SHRINE_FALLEN_USED_2P", "<style=cIsHealing>You offer to the Shrine of the Fallen and revived {1}!</style>");
+			LanguageAPI.Add("OBJECTIVE_KILL_TINY_IMPS", "Kill the <color={0}>tiny imps</color> ({1}/{2}) in {3} seconds!");
+			LanguageAPI.Add("COST_PERCENTMAXHEALTH_FORMAT", "{0}% MAX HP");
+			LanguageAPI.Add("COST_PERCENTMAXHEALTH_ROUND_FORMAT", "{0}% STAGE MAX HP");
+			LanguageAPI.Add("SHRINE_DISORDER_NAME", "Shrine of Disorder");
+			LanguageAPI.Add("SHRINE_DISORDER_CONTEXT", "Offer to Shrine of Disorder");
+			LanguageAPI.Add("SHRINE_DISORDER_USE_MESSAGE_2P", "<style=cShrine>Your order has been disturbed.</style>");
+			LanguageAPI.Add("SHRINE_DISORDER_USE_MESSAGE", "<style=cShrine>{0}'s order has been disturbed.</style>");
+			LanguageAPI.Add("SHRINE_HERESY_NAME", "Shrine of Heresy");
+			LanguageAPI.Add("SHRINE_HERESY_CONTEXT", "Offer to Shrine of Heresy");
+			LanguageAPI.Add("SHRINE_HERESY_USE_MESSAGE_2P", "<style=cShrine>You have taken a step towards heresy.</style>");
+			LanguageAPI.Add("SHRINE_HERESY_USE_MESSAGE", "<style=cShrine>{0} has taken a step towards heresy.</style>");
+			LanguageAPI.Add("SHRINE_WISP_NAME", "Shrine of Wisps");
+			LanguageAPI.Add("SHRINE_WISP_CONTEXT", "Offer to the tree");
+			LanguageAPI.Add("SHRINE_WISP_ACCEPT_MESSAGE_2P", "<style=cShrine>The tree accepted your <color=#{1}>{2}</color> and ghostly Wisps appeared.</style>");
+			LanguageAPI.Add("SHRINE_WISP_ACCEPT_MESSAGE", "<style=cShrine>The tree accepted {0}'s <color=#{1}>{2}</color> and ghostly Wisps appeared.</style>");
+			LanguageAPI.Add("SHRINE_WISP_DENY_MESSAGE_2P", "<style=cIsDamage>The tree rejected your <color=#{1}>{2}</color> and angry Wisps appeared..</style>");
+			LanguageAPI.Add("SHRINE_WISP_DENY_MESSAGE", "<style=cIsDamage>The tree rejected {0}'s <color=#{1}>{2}</color> and angry Wisps appeared..</style>");
+			LanguageAPI.Add("SHRINE_SHIELDING_NAME", "Shrine of Hardening");
+			LanguageAPI.Add("SHRINE_SHIELDING_CONTEXT", "Touch the shield.");
+			LanguageAPI.Add("SHRINE_SHIELDING_USE_MESSAGE_2P", "<style=cShrine>You feel protected.</style>");
+			LanguageAPI.Add("SHRINE_SHIELDING_USE_MESSAGE", "<style=cShrine>{0} feels protected.</style>");
 		}
 
 		public void RegisterConfig()
@@ -642,7 +645,7 @@ namespace Evaisa.MoreShrines
 			fallenShrineEnabled = Config.Bind<bool>(
 				"Shrine of the Fallen",
 				"Enable",
-				true,
+				false,
 				"Enable the Shrine of the Fallen."
 			);
 			fallenShrineWeight = Config.Bind<int>(
@@ -728,6 +731,7 @@ namespace Evaisa.MoreShrines
 			);
 
 			// Shrine of Shielding
+
 			/*
 			shieldShrineEnabled = Config.Bind<bool>(
 				"Shrine of Shielding",
@@ -746,7 +750,6 @@ namespace Evaisa.MoreShrines
 
         public void GenerateTinyImp()
 		{
-
 			var impCard = ScriptableObject.CreateInstance<CharacterSpawnCard>();
 			var impCardOriginal = Resources.Load<CharacterSpawnCard>("SpawnCards/CharacterSpawnCards/cscImp");
 			impCard.directorCreditCost = 10;
@@ -759,13 +762,11 @@ namespace Evaisa.MoreShrines
 			impCard.forbiddenAsBoss = true;
 			//impCard.noElites = !allowElites.Value;
 
-			var impPrefab = Utils.PrefabFromGameObject(impCardOriginal.prefab);
-			impPrefab.name = "TinyImpMaster";
+			var impPrefab = PrefabAPI.InstantiateClone(impCardOriginal.prefab, "TinyImpMaster");
 
 			var impMaster = impPrefab.GetComponent<CharacterMaster>();
-			var impBody = Utils.PrefabFromGameObject(impMaster.bodyPrefab);
+			var impBody = PrefabAPI.InstantiateClone(impMaster.bodyPrefab, "TinyImpBody");
 
-			impBody.name = "TinyImpBody";
 
 			impMaster.bodyPrefab = impBody;
 
@@ -809,8 +810,8 @@ namespace Evaisa.MoreShrines
 			impPrefab.AddComponent<TinyImp>();
 
 			impPrefab.GetComponent<BaseAI>().localNavigator.allowWalkOffCliff = false;
-			MasterPrefabs.Add(impPrefab);
-			BodyPrefabs.Add(impBody);
+			ContentAddition.AddMaster(impPrefab);
+			ContentAddition.AddBody(impBody);
 
 			On.RoR2.LocalNavigator.Update += LocalNavigator_Update;
 
@@ -978,12 +979,14 @@ namespace Evaisa.MoreShrines
 			fallenBehaviour.maxUses = 1;
 			//fallenBehaviour.scalePerUse = true;
 
-			var interactable = new BetterAPI.Interactables.InteractableTemplate();
-			interactable.interactablePrefab = shrinePrefab;
+			var interactable = ScriptableObject.CreateInstance<InteractableSpawnCard>();
+			var card = new DirectorCard();
+			interactable.prefab = shrinePrefab;
 			interactable.slightlyRandomizeOrientation = false;
-			interactable.selectionWeight = fallenShrineWeight.Value;
-			interactable.interactableCategory = Interactables.Category.Shrines;
-			interactable.multiplayerOnly = true;
+			card.selectionWeight = fallenShrineWeight.Value;
+			card.spawnCard = interactable;
+			DirectorAPI.Helpers.AddNewInteractable(card, DirectorAPI.InteractableCategory.Shrines);
+
 			/*
 			if (fallenShrineSpawnAtleastOne.Value)
 			{
@@ -994,8 +997,6 @@ namespace Evaisa.MoreShrines
 				interactable.minimumCount = 0;
 			}
 			*/
-
-			fallenShrineInteractableInfo = Interactables.AddToStages(interactable, Interactables.Stages.Default);
 
 		}
 
@@ -1022,6 +1023,7 @@ namespace Evaisa.MoreShrines
 			mdlBase.GetComponent<MeshRenderer>().material.shader = Shader.Find("Hopoo Games/Deferred/Standard");
 			mdlBase.GetComponent<MeshRenderer>().material.color = new Color(1.0f, 0.8549f, 0.7647f, 1.0f);
 
+
 			var symbolTransform = shrinePrefab.transform.Find("Symbol");
 
 
@@ -1047,14 +1049,15 @@ namespace Evaisa.MoreShrines
 			shrineBehaviour.symbolTransform = symbolTransform;
 
 
-			var interactable = new BetterAPI.Interactables.InteractableTemplate();
-			interactable.interactablePrefab = shrinePrefab;
+			var interactable = ScriptableObject.CreateInstance<InteractableSpawnCard>();
+			var card = new DirectorCard();
+			interactable.prefab = shrinePrefab;
 			interactable.slightlyRandomizeOrientation = false;
-			interactable.selectionWeight = heresyShrineWeight.Value;
-			interactable.interactableCategory = Interactables.Category.Shrines;
-
-
-			heresyShrineInteractableInfo = Interactables.AddToStages(interactable, Interactables.Stages.Default);
+			card.selectionWeight = heresyShrineWeight.Value;
+			card.spawnCard = interactable;
+			interactable.directorCreditCost = 30;
+			interactable.maxSpawnsPerStage = 1;
+			DirectorAPI.Helpers.AddNewInteractable(card, DirectorAPI.InteractableCategory.Shrines);
 
 		}
 
@@ -1077,14 +1080,15 @@ namespace Evaisa.MoreShrines
 			shrineBehaviour.modelBase = mdlBase.transform;
 			
 
-			var interactable = new BetterAPI.Interactables.InteractableTemplate();
-			interactable.interactablePrefab = shrinePrefab;
+			var interactable = ScriptableObject.CreateInstance<InteractableSpawnCard>();
+			var card = new DirectorCard();
+			interactable.prefab = shrinePrefab;
 			interactable.slightlyRandomizeOrientation = false;
-			interactable.selectionWeight = disorderShrineWeight.Value;
-			interactable.interactableCategory = Interactables.Category.Shrines;
-
-
-			disorderShrineInteractableInfo = Interactables.AddToStages(interactable, Interactables.Stages.Default);
+			card.selectionWeight = disorderShrineWeight.Value;
+			card.spawnCard = interactable;
+			interactable.directorCreditCost = 30;
+			interactable.maxSpawnsPerStage = 1;
+			DirectorAPI.Helpers.AddNewInteractable(card, DirectorAPI.InteractableCategory.Shrines);
 
 		}
 
@@ -1160,7 +1164,6 @@ namespace Evaisa.MoreShrines
 			directorCard.spawnCard = impSpawnCard;
 			directorCard.selectionWeight = 10;
 			directorCard.spawnDistance = DirectorCore.MonsterSpawnDistance.Standard;
-			directorCard.allowAmbushSpawn = true;
 			directorCard.preventOverhead = false;
 			directorCard.minimumStageCompletions = 0;
 
@@ -1179,14 +1182,15 @@ namespace Evaisa.MoreShrines
 
 			var customDirector = shrinePrefab.AddComponent<CustomDirector>();
 
-			var interactable = new BetterAPI.Interactables.InteractableTemplate();
-			interactable.interactablePrefab = shrinePrefab;
+			var interactable = ScriptableObject.CreateInstance<InteractableSpawnCard>();
+			var card = new DirectorCard();
+			interactable.prefab = shrinePrefab;
 			interactable.slightlyRandomizeOrientation = false;
-			interactable.selectionWeight = impShrineWeight.Value;
-			interactable.interactableCategory = Interactables.Category.Shrines;
-
-
-			impShrineInteractableInfo = Interactables.AddToStages(interactable, Interactables.Stages.Default);
+			interactable.directorCreditCost = 20;
+			interactable.maxSpawnsPerStage = 2;
+			card.selectionWeight = impShrineWeight.Value;
+			card.spawnCard = interactable;
+			DirectorAPI.Helpers.AddNewInteractable(card, DirectorAPI.InteractableCategory.Shrines);
 
 		}
 
@@ -1209,7 +1213,6 @@ namespace Evaisa.MoreShrines
 			directorCard1.spawnCard = Resources.Load<CharacterSpawnCard>("spawncards/characterspawncards/cscLesserWisp");
 			directorCard1.selectionWeight = 10;
 			directorCard1.spawnDistance = DirectorCore.MonsterSpawnDistance.Standard;
-			directorCard1.allowAmbushSpawn = true;
 			directorCard1.preventOverhead = false;
 			directorCard1.minimumStageCompletions = 0;
 
@@ -1217,7 +1220,6 @@ namespace Evaisa.MoreShrines
 			directorCard2.spawnCard = Resources.Load<CharacterSpawnCard>("spawncards/characterspawncards/cscGreaterWisp");
 			directorCard2.selectionWeight = 3;
 			directorCard2.spawnDistance = DirectorCore.MonsterSpawnDistance.Standard;
-			directorCard2.allowAmbushSpawn = true;
 			directorCard2.preventOverhead = false;
 			directorCard2.minimumStageCompletions = 0;
 
@@ -1244,14 +1246,18 @@ namespace Evaisa.MoreShrines
 			//var customDirector = shrinePrefab.AddComponent<CustomDirector>();
 
 
-			var interactable = new BetterAPI.Interactables.InteractableTemplate();
-			interactable.interactablePrefab = shrinePrefab;
+			var interactable = ScriptableObject.CreateInstance<InteractableSpawnCard>();
+			var card = new DirectorCard();
+			interactable.prefab = shrinePrefab;
 			interactable.slightlyRandomizeOrientation = false;
-			interactable.selectionWeight = wispShrineWeight.Value;
-			interactable.interactableCategory = Interactables.Category.Shrines;
-
-
-			wispShrineInteractableInfo = Interactables.AddToStages(interactable, Interactables.Stages.ScorchedAcres | Interactables.Stages.SirensCall);
+			card.selectionWeight = wispShrineWeight.Value;
+			card.spawnCard = interactable;
+			interactable.directorCreditCost = 15;
+			interactable.maxSpawnsPerStage = 2;
+			DirectorAPI.Stage[] stages = new DirectorAPI.Stage[] { DirectorAPI.Stage.SirensCall, DirectorAPI.Stage.ScorchedAcres };
+			foreach (var stage in stages) {
+				DirectorAPI.Helpers.AddNewInteractableToStage(card, DirectorAPI.InteractableCategory.Shrines, stage);
+			}
 
 		}
 	}

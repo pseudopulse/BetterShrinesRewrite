@@ -6,7 +6,6 @@ using RoR2;
 using System.Collections.Generic;
 using System.Linq;
 using RoR2.UI;
-using BetterAPI;
 
 namespace Evaisa.MoreShrines
 {
@@ -54,8 +53,6 @@ namespace Evaisa.MoreShrines
 
 		public bool failedShrine = false;
 
-		Objectives.ObjectiveInfo objectiveInfo;
-
 		public void Awake()
         {
 			purchaseInteraction = GetComponent<PurchaseInteraction>();
@@ -97,15 +94,12 @@ namespace Evaisa.MoreShrines
         private void TeleporterInteraction_AddShrineStack(On.RoR2.TeleporterInteraction.orig_AddShrineStack orig, TeleporterInteraction self)
         {
 			orig(self);
-			if (objectiveInfo)
-			{
-				MoreShrines.objectives.Remove(objectiveInfo);
-				Objectives.RemoveObjective(objectiveInfo);
-			}
+			ObjectivePanelController.collectObjectiveSources -= CollectSources;
 		}
 
 		void OnDestroy()
         {
+			ObjectivePanelController.collectObjectiveSources -= CollectSources;
 			On.RoR2.TeleporterInteraction.AddShrineStack -= TeleporterInteraction_AddShrineStack;
 		}
 
@@ -186,8 +180,7 @@ namespace Evaisa.MoreShrines
 		{
 			
 			failedShrine = true;
-			Objectives.RemoveObjective(objectiveInfo);
-
+			ObjectivePanelController.collectObjectiveSources -= CollectSources;
 		}
 
 
@@ -224,9 +217,6 @@ namespace Evaisa.MoreShrines
 					if (!Application.isBatchMode)
 					{
 						objectiveString = string.Format(Language.GetString(objectiveBaseToken), impColorHex, killedImpCount, impsSpawned, this.timeLeft);
-
-						objectiveInfo.title = objectiveString;
-						objectiveInfo.show = true;
 					}
 
 					foreach (var imp in combatSquad.membersList)
@@ -256,13 +246,16 @@ namespace Evaisa.MoreShrines
 		{
 			var killedImpCount = impsSpawned - impsAlive;
 			objectiveString = string.Format(Language.GetString(objectiveBaseToken), impColorHex, killedImpCount, impsSpawned, this.timeLeft);
-			objectiveInfo = Objectives.AddObjective(objectiveString, true);
-			MoreShrines.objectives.Add(objectiveInfo);
+			ObjectivePanelController.collectObjectiveSources += CollectSources;
 			symbolTransform.gameObject.SetActive(false);
 		}
 
+        private void CollectSources(CharacterMaster master, List<ObjectivePanelController.ObjectiveSourceDescriptor> list)
+        {
+            
+        }
 
-		public void AddShrineStack(Interactor interactor)
+        public void AddShrineStack(Interactor interactor)
 		{
 			RpcAddShrineStackClient();
 			if (!NetworkServer.active)
@@ -435,8 +428,7 @@ namespace Evaisa.MoreShrines
 		public void RpcOnDefeatedClient()
 		{
 			objectiveString = string.Format(Language.GetString(objectiveBaseToken), impColorHex, impsSpawned, impsSpawned, this.timeLeft);
-			objectiveInfo.title = objectiveString;
-			Objectives.RemoveObjective(objectiveInfo);
+			ObjectivePanelController.collectObjectiveSources -= CollectSources;
 			active = false;
 		}
 
@@ -448,5 +440,6 @@ namespace Evaisa.MoreShrines
 				DropRewards();
 			}
         }
+		
 	}
 }
