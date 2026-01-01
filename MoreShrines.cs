@@ -812,6 +812,8 @@ namespace Evaisa.MoreShrines
 			impPrefab.GetComponent<BaseAI>().localNavigator.allowWalkOffCliff = false;
 			ContentAddition.AddMaster(impPrefab);
 			ContentAddition.AddBody(impBody);
+			ContentAddition.AddNetworkedObject(impBody);
+			ContentAddition.AddNetworkedObject(impPrefab);
 
 			On.RoR2.LocalNavigator.Update += LocalNavigator_Update;
 

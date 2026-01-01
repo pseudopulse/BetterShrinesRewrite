@@ -108,6 +108,9 @@ namespace Evaisa.MoreShrines
 
                 this.shrinePrefab = shrinePrefab;
 
+                ContentAddition.AddNetworkedObject(shrinePrefab);
+                PrefabAPI.RegisterNetworkPrefab(shrinePrefab);
+
             }
 
             public ShrineInfo(ShrineBaseType baseShrine, GameObject shrinePrefab, Color symbolColor, Shader overrideShader, Color materialColor)
