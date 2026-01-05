@@ -10,7 +10,7 @@ This mod aims to add new shrines to risk of rain!
 
 * Shrine of Imps
 	* Spawns tiny imps, if all imps are killed in time the shrine spawns a item.
-* Shrine of the fallen
+* Shrine of the Fallen (disabled by default due to SOTS' Shrine of Shaping)
 	* Revives a team mate, however you pay for it by reducing your max hp by a percentage for the rest of the stage.
 	* The revived player suffers the same fate.
 * Shrine of Disorder
@@ -28,9 +28,6 @@ This mod aims to add new shrines to risk of rain!
 	* Strikes nearby enemies for 1500% damage, allowing you to escape dangerous situations.
 * Totem Pole
 	* On use, activates a random equipment.
- 
-If you have any problems feel free to contact me on discord, I am in the Risk of Rain modding server.
-My discord tag is **Evaisa#0001**
 
 ### Images:
 
@@ -38,7 +35,7 @@ My discord tag is **Evaisa#0001**
   
 ![Shine of Imps](https://media.giphy.com/media/S8x8nRoQaL761cAwKt/giphy.gif)
   
-**Shrine of the Fallen** (disabled by default due to SOTS' Shrine of Shaping)
+**Shrine of the Fallen**
 
 ![Shrine of the Fallen](https://media.giphy.com/media/Xs0L2YFFcvAFJuk61x/giphy.gif)
   
@@ -64,6 +61,9 @@ My discord tag is **Evaisa#0001**
   
 
 ### Patch Notes:
+1.5.3
+* Fixed incompatibility with Mystic's Items that caused invincibility whenever one of the shrines was present on a stage if Black Monolith was enabled.
+
 1.5.2
 * Updated for Alloyed Collective.
 

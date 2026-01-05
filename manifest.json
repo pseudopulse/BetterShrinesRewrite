@@ -1,7 +1,7 @@
 {
   "name": "MoreShrines",
-  "version_number": "1.5.2",
-  "website_url": "",
+  "version_number": "1.5.3",
+  "website_url": "https://github.com/pseudopulse/BetterShrinesRewrite",
   "description": "More Shrines aims to add new shrines to Risk of Rain! It currently adds 5 new shrines. Updated (with permission) for AC.",
   "dependencies": [
     "bbepis-BepInExPack-5.4.9",

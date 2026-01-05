@@ -20,16 +20,19 @@ using RoR2.Navigation;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
+using HarmonyLib;
+using MonoMod.RuntimeDetour;
 
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 namespace Evaisa.MoreShrines
 {
 	//[BepInDependency(MiniRpcPlugin.Dependency)]
+	[BepInDependency("com.themysticsword.mysticsitems", BepInDependency.DependencyFlags.SoftDependency)]
 	[BepInPlugin(ModGuid, ModName, ModVer)]
 	public class MoreShrines : BaseUnityPlugin
     {
-		private const string ModVer = "1.1.8";
+		private const string ModVer = "1.1.9";
 		private const string ModName = "More Shrines";
 		private const string ModGuid = "com.evaisa.moreshrines";
 
@@ -176,6 +179,31 @@ namespace Evaisa.MoreShrines
                     Logger.LogError("Failed to apply CostTypeCatalog IL hook");
                 }
             };
+
+			if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.themysticsword.mysticsitems")) { // unity
+                PluginInfo info = BepInEx.Bootstrap.Chainloader.PluginInfos["com.themysticsword.mysticsitems"];
+                Assembly asm = info.Instance.GetType().Assembly;
+                ILHook hook = new(AccessTools.Method(asm.GetType("MysticsItems.Items.ExtraShrineUse"), "UpdateShrine", new Type[] { asm.GetType("MysticsItems.Items.ExtraShrineUse/MysticsItemsExtraShrineUseBehaviour"), typeof(int) }), (il) => {
+                    ILCursor c = new(il);
+					ILLabel label = c.DefineLabel();
+                    c.TryGotoNext(MoveType.Before,
+						x => x.MatchStloc(3),
+						x => x.MatchNop(),
+						x => x.MatchLdloc(3)
+					);
+					int index = c.Index + 2;
+					c.TryGotoNext(MoveType.After,
+						x => x.MatchNop(),
+						x => x.MatchNop(),
+						x => x.MatchNop()
+					);
+					c.MarkLabel(label);
+					c.Index = index;
+					c.Emit(OpCodes.Ldloc, 3);
+					c.EmitDelegate<Func<MonoBehaviour, bool>>((x) => { return x == null; });
+					c.Emit(OpCodes.Brtrue, label);
+                });
+            }
 		}
 		
 
